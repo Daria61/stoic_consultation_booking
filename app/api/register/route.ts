@@ -21,9 +21,9 @@ const SHEET_NAME = "Registrations";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { time, seat, email, phone } = body;
+    const { time, seat, email, phone, date } = body;
 
-    if (!time || !seat || !email || !phone) {
+    if (!time || !seat || !email || !phone || !date) {
       return NextResponse.json(
         { status: "error", message: "All fields are required" },
         { status: 400 },
@@ -33,10 +33,10 @@ export async function POST(req: NextRequest) {
     // Append row to Google Sheet
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:E`,
+      range: `${SHEET_NAME}!A:F`,
       valueInputOption: "USER_ENTERED",
       requestBody: {
-        values: [[time, seat, email, phone, new Date().toISOString()]],
+        values: [[time, seat, email, phone, new Date().toISOString(), date]],
       },
     });
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
 <p>
   <strong>Нээлттэй хичээлийн хуваарь:</strong>
-  2 сарын 1 ${time}
+  ${date} ${time}
 </p>
 
 <p>
@@ -86,25 +86,40 @@ export async function GET(req: NextRequest) {
   try {
     // Optional: get query param ?time=12:00
     const { searchParams } = new URL(req.url);
-    const timeFilter = searchParams.get("time"); // e.g., "12:00"
+    const dateFilter = searchParams.get("date"); // "1 сарын 31"
+    const timeFilter = searchParams.get("time"); // "12:00"
 
     // Read the sheet data
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:E`, // columns: Time | Seat | Email | Phone | Timestamp
+      range: `${SHEET_NAME}!A:F`, // columns: Time | Seat | Email | Phone | Timestamp
     });
 
     const rows = response.data.values || [];
 
     // Filter by time if provided
-    const filteredRows = timeFilter
-      ? rows.filter((row) => row[0] === timeFilter)
-      : rows;
+        const filteredRows = rows.filter((row) => {
+      const rowTime = row[0]; // Column A
+      const rowDate = row[5]; // Column F
 
-    // Seats that are taken
+      if (dateFilter && timeFilter) {
+        return rowDate === dateFilter && rowTime === timeFilter;
+      }
+
+      if (dateFilter) {
+        return rowDate === dateFilter;
+      }
+
+      if (timeFilter) {
+        return rowTime === timeFilter;
+      }
+
+      return true;
+    });
+
     const takenSeats = filteredRows
-      .map((row) => Number(row[1]))
-      .filter(Boolean);
+      .map((row) => Number(row[1])) // Seat column
+      .filter((seat) => !isNaN(seat));
 
     return NextResponse.json({ status: "success", takenSeats });
   } catch (error: any) {

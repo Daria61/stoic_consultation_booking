@@ -7,49 +7,58 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner"
+import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
-const TIME = ["12:00", "14:00"]
+const TIME = ["12:00", "14:00"];
+const DATE = ["1 сарын 31", "2 сарын 1"] as const;
+
+const TIME_BY_DATE: Record<(typeof DATE)[number], readonly string[]> = {
+  "1 сарын 31": ["12:00"],
+  "2 сарын 1": ["12:00", "14:00"],
+} as const;
 
 export const registrationSchema = z.object({
   time: z.enum(TIME),
+  date: z.enum(DATE),
   seat: z.number().min(1, "Суудал сонгоно уу"),
   email: z.string().email("Имэйл буруу байна"),
   phone: z.string().min(5, "Утасны дугаарыг оруулна уу"),
 });
 
 export default function Home() {
-    const [takenSeats, setTakenSeats] = useState<number[]>([]);
-    const [loading, setLoading] = useState(false); 
+  const [takenSeats, setTakenSeats] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch, 
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
       time: "12:00",
-      seat: 1,
+      seat: 0,
       email: "",
       phone: "",
+      date: DATE[0],
     },
   });
 
   const selectedTime = watch("time"); // track selected time
   const selectedSeat = watch("seat"); // track selected seat
+  const selectedDate = watch("date"); // track selected date
 
   const onSubmit = async (data: z.infer<typeof registrationSchema>) => {
     try {
-          setLoading(true);
+      setLoading(true);
       const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
       const result = await res.json();
 
@@ -60,7 +69,7 @@ export default function Home() {
       }
     } catch (err) {
       toast.error("Алдаа гарлаа");
-    }finally {
+    } finally {
       setLoading(false); // <-- stop loading
     }
   };
@@ -70,12 +79,12 @@ export default function Home() {
 
     const fetchTakenSeats = async () => {
       try {
-        const res = await fetch(`/api/register?time=${selectedTime}`);
+        const res = await fetch(`/api/register?date=${selectedDate}&time=${selectedTime}`);
         const data = await res.json();
         if (data.status === "success") {
           setTakenSeats(data.takenSeats);
           // Reset seat if currently selected seat is taken
-          if (data.takenSeats.includes(selectedSeat)) setValue("seat", 0);
+          // if (data.takenSeats.includes(selectedSeat)) setValue("seat", 0);
         } else {
           toast.error("Суудлын мэдээллийг авахад алдаа гарлаа");
         }
@@ -85,7 +94,19 @@ export default function Home() {
     };
 
     fetchTakenSeats();
-  }, [selectedTime]);
+  }, [selectedTime, selectedDate]);
+
+  useEffect(() => {
+    const availableTimes = TIME_BY_DATE[selectedDate];
+
+    if (!availableTimes.includes(selectedTime)) {
+      setValue("time", availableTimes[0]);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+  setValue("seat", 0);
+}, [selectedDate, selectedTime]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white">
@@ -111,7 +132,9 @@ export default function Home() {
               <MessageCircleHeart width={30} />
               <div>
                 <p>Нийт 40 суудал</p>
-                <p className="text-gray-600 text-[12px]">Нэг өдөрлөг 20 суудал</p>
+                <p className="text-gray-600 text-[12px]">
+                  Нэг өдөрлөг 20 суудал
+                </p>
               </div>
             </div>
             <div className="flex gap-2 items-center">
@@ -159,25 +182,46 @@ export default function Home() {
             <br />- Тэтгэлэг болон санхүүгийн тусламж
           </div>
 
-           <div className="mt-10">
+          <div className="mt-10">
             <p className="font-semibold my-3 text-xl">Бүртгүүлэх</p>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col gap-4"
+            >
+              <p>Өдөр сонгох</p>
+              <div className="flex gap-4">
+                {DATE.map((date) => (
+                  <Button
+                    key={date}
+                    type="button"
+                    variant="outline"
+                    className={`px-4 py-2 border ${selectedDate === date ? "bg-blue-500 text-white" : ""}`}
+                    onClick={() => setValue("date", date)}
+                  >
+                    {date}
+                  </Button>
+                ))}
+              </div>
               {/* Time selection */}
               <p>Цаг сонгох</p>
               <div className="flex gap-4">
-                {TIME.map((time) => (
+                {TIME_BY_DATE[selectedDate].map((time) => (
                   <Button
                     key={time}
                     type="button"
                     variant="outline"
-                    className={`px-4 py-2 border ${selectedTime === time ? "bg-blue-500 text-white" : ""}`}
+                    className={`px-4 py-2 border ${
+                      selectedTime === time ? "bg-blue-500 text-white" : ""
+                    }`}
                     onClick={() => setValue("time", time)}
                   >
                     {time}
                   </Button>
                 ))}
               </div>
-              {errors.time && <p className="text-red-500 text-sm">{errors.time.message}</p>}
+              {errors.time && (
+                <p className="text-red-500 text-sm">{errors.time.message}</p>
+              )}
 
               {/* Seat selection */}
               <p>Суудал сонгох</p>
@@ -202,18 +246,36 @@ export default function Home() {
                   );
                 })}
               </div>
-              {errors.seat && <p className="text-red-500 text-sm">{errors.seat.message}</p>}
+              {errors.seat && (
+                <p className="text-red-500 text-sm">{errors.seat.message}</p>
+              )}
 
               {/* Personal info */}
               <p>Хувийн мэдээлэл</p>
-              <Input placeholder="Имэйл" {...register("email")} className="border p-2 rounded" />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              <Input
+                placeholder="Имэйл"
+                {...register("email")}
+                className="border p-2 rounded"
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm">{errors.email.message}</p>
+              )}
 
-              <Input placeholder="Утас" {...register("phone")} className="border p-2 rounded" />
-              {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+              <Input
+                placeholder="Утас"
+                {...register("phone")}
+                className="border p-2 rounded"
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-sm">{errors.phone.message}</p>
+              )}
 
-              <Button type="submit" className="bg-blue-500 text-white py-2 rounded mt-4" disabled={loading}>
-               {loading? "Илгээж байна...":  "Бүртгүүлэх"}
+              <Button
+                type="submit"
+                className="bg-blue-500 text-white py-2 rounded mt-4"
+                disabled={loading}
+              >
+                {loading ? "Илгээж байна..." : "Бүртгүүлэх"}
               </Button>
             </form>
           </div>
