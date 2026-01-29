@@ -3,7 +3,9 @@ import { google } from "googleapis";
 import { sendEmail } from "@/lib/mailer";
 
 // Load service account credentials from env
-const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY as string);
+const credentials = JSON.parse(
+  process.env.GOOGLE_SERVICE_ACCOUNT_KEY as string,
+);
 
 const auth = new google.auth.GoogleAuth({
   credentials,
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
     if (!time || !seat || !email || !phone) {
       return NextResponse.json(
         { status: "error", message: "All fields are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,11 +40,36 @@ export async function POST(req: NextRequest) {
       },
     });
 
-      await sendEmail({
+    await sendEmail({
       to: email,
       subject: "Бүртгэл амжилттай боллоо",
-      text: `Та амжилттай бүртгэгдлээ! Цаг: ${time}, Суудал: ${seat}`,
-      html: `<p>Та амжилттай бүртгэгдлээ!</p><p><strong>Цаг:</strong> ${time}</p><p><strong>Суудал:</strong> ${seat}</p>`,
+      text: `Та амжилттай бүртгэгдлээ! Цаг: ${time},`,
+      html: `<p>Таны бүртгэл амжилттай баталгаажлаа.</p>
+
+<p>
+  <strong>Нээлттэй хичээлийн хуваарь:</strong>
+  2 сарын 1 ${time}
+</p>
+
+<p>
+  <strong>Хаяг:</strong><br />
+  Улаанбаатар хот, Чингэлтэй дүүрэг, 1-р хороо,<br />
+  Мөнгөн Завьяагийн автобусны буудлын ард талд<br />
+  Дэнвер оффис 2 давхарт, 15170
+</p>
+
+<p>
+  <strong>Утас:</strong>
+  99142833, 99131953
+</p>
+
+<p>
+  <strong>Google map:</strong>
+  <a href="https://maps.app.goo.gl/9ubRA6VQMszqm3Ey8">
+    https://maps.app.goo.gl/9ubRA6VQMszqm3Ey8
+  </a>
+</p>
+`,
     });
 
     return NextResponse.json({ status: "success" });
@@ -50,7 +77,7 @@ export async function POST(req: NextRequest) {
     console.error(error);
     return NextResponse.json(
       { status: "error", message: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -75,14 +102,16 @@ export async function GET(req: NextRequest) {
       : rows;
 
     // Seats that are taken
-    const takenSeats = filteredRows.map((row) => Number(row[1])).filter(Boolean);
+    const takenSeats = filteredRows
+      .map((row) => Number(row[1]))
+      .filter(Boolean);
 
     return NextResponse.json({ status: "success", takenSeats });
   } catch (error: any) {
     console.error(error);
     return NextResponse.json(
       { status: "error", message: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
