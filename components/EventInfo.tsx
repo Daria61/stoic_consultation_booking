@@ -12,11 +12,16 @@ export const EventInfo = ({
 }) => {
 const text = Object.entries(schedule)
   .map(([date, times]) => {
-    // "1 сарын 31" → ["1", "31"]
-    const [month, day] = date.match(/\d+/g);
+    const match = date.match(/\d+/g) ?? [];
+
+    const month = match[0];
+    const day = match[1];
+
+    if (!month || !day) return "";
 
     return `${month}/${day} - ${times.join("/")}`;
   })
+  .filter(Boolean)
   .join(", ");
 
   return (
