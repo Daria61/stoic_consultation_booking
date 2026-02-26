@@ -77,7 +77,7 @@ export const RegistrationSection = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      setDate(`${data.date}  ${data.time}`);
+      setDate(`${data.date}  ${data.time} ${data.email}`);
 
       const result = await res.json();
 

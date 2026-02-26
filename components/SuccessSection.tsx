@@ -1,9 +1,8 @@
-import { Calendar, MapPin, Link } from "lucide-react";
+import { Calendar, MapPin, Link, Phone } from "lucide-react";
 import Image from "next/image";
 
 export const SuccessSection = ({ date }: { date: string }) => {
   const dateSplitted = date.split(" ");
-  console.log(dateSplitted);
 
   return (
     <div>
@@ -28,6 +27,12 @@ export const SuccessSection = ({ date }: { date: string }) => {
             </a>
           </div>
         </div>
+        <div className="flex gap-2 items-center align-baseline">
+          <Phone width={20} className="ml-2" />
+          <div>
+            <p> 99142833, 99131953</p>
+          </div>
+        </div>
       </div>
       <div>
         <p className="font-bold text-xl text-center my-5">
@@ -35,8 +40,9 @@ export const SuccessSection = ({ date }: { date: string }) => {
         </p>
 
         <p>
-          The consultation booked at {date}. Please check your email for the
-          further information.
+          The consultation is booked for <strong> {dateSplitted[0]} </strong> at{" "}
+          <strong> {dateSplitted[2]}</strong>. Please check your email,{" "}
+          <strong> {dateSplitted[3]}</strong>, for further information.
         </p>
         <div className="flex justify-center">
           <Image

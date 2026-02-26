@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Link } from "lucide-react";
+import { Calendar, MapPin, Link, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -28,6 +28,12 @@ export const InformationSection = ({
             >
               Galleria Ulaanbaatar - Perla <Link width={12} />
             </a>
+          </div>
+        </div>
+        <div className="flex gap-2 items-center align-baseline">
+          <Phone width={20} className="ml-2" />
+          <div>
+            <p> 99142833, 99131953</p>
           </div>
         </div>
       </div>
