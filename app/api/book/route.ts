@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     if (rowIndex === -1) {
       return NextResponse.json(
-        { status: "error", message: "Booking not found" },
+        { status: "error", message: "Date and Time are already booked." },
         { status: 404 },
       );
     }
