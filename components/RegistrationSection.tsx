@@ -129,15 +129,15 @@ export const RegistrationSection = ({
             }}
             disabled={(date) => isDayDisabled(date, selectDateOptions)}
             classNames={{
-              month: "space-y-4 mx-3 md:mx-6 w-full",
+              month: "space-y-4 md:mx-6 w-full",
 
               head_row: "grid grid-cols-7 w-full text-slate-500",
               row: "grid grid-cols-7 w-full mt-1",
               day_outside: "opacity-50",
-              cell: "h-13 text-center text-sm relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+              cell: "h-13 w-13 text-center text-sm relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
               day: cn(
                 buttonVariants({ variant: "ghost" }),
-                "h-13 font-normal aria-selected:opacity-100 text-slate-500 data-[selected-single=true]:bg-[#1F6A63] data-[selected-single=true]:text-white",
+                "h-13 w-13 font-normal aria-selected:opacity-100 text-slate-500 data-[selected-single=true]:bg-[#1F6A63] data-[selected-single=true]:text-white",
               ),
             }}
             today={new Date()}

@@ -64,7 +64,7 @@ export default function Home() {
     <div className="flex min-h-screen items-center justify-center bg-white">
       <div className="relative w-[480px] min-h-screen bg-black overflow-hidden">
         {/* Poster image */}
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 h-[560px] w-[480px]">
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[390px] h-[560px] md:w-[480px]">
           <Image src="/bg.png" alt="poster" fill className="object-cover" />
         </div>
 
