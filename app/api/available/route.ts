@@ -14,43 +14,48 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: "v4", auth });
 
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID as string;
-const SHEET_NAME = "Schedules";
+const SHEET_NAME = "Options";
 
 export async function GET(req: NextRequest) {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A2:D`, // Date | Time | TotalSeats | IsActive
+      range: `${SHEET_NAME}!A2:I`, // Date | Time | TotalSeats | IsActive
     });
 
     const rows = response.data.values || [];
 
-    const schedule: Record<string, string[]> = {};
-    let totalSeats = 0;
+    const availableDates = new Set<string>();
 
     for (const row of rows) {
-      const [date, time, total, isActive] = row;
+      const [
+        id,
+        date,
+        time,
+        available,
+        email,
+        phone,
+        timestamp,
+        payment_status,
+        confirm_email,
+      ] = row;
 
-      if (!date || !time) continue;
-      if (String(isActive).toUpperCase() !== "TRUE") continue;
+      // Condition 1: slot must be active
+      const isAvailable = String(available).toUpperCase() === "TRUE";
 
-      // build schedule
-      if (!schedule[date]) {
-        schedule[date] = [];
-      }
-      schedule[date].push(time);
+      // Condition 2: not booked yet (email empty)
+      const isNotBooked = !email || email.trim() === "";
 
-      // sum total seats
-      const seatsNum = Number(total);
-      if (!isNaN(seatsNum)) {
-        totalSeats += seatsNum;
+      if (!isAvailable || !isNotBooked) continue;
+
+      if (date) {
+        availableDates.add(date);
       }
     }
 
     return NextResponse.json({
       status: "success",
-      schedule,
-      total: String(totalSeats), // "60"
+      dates: Array.from(availableDates).sort(),
     });
   } catch (error: any) {
     console.error(error);
