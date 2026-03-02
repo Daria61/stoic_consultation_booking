@@ -75,7 +75,10 @@ export async function POST(req: NextRequest) {
       // Check if it's a duplicate request from the same user
       if (currentEmail === email) {
         return NextResponse.json(
-          { status: "error", message: "You have already booked this time slot." },
+          {
+            status: "error",
+            message: "You have already booked this time slot.",
+          },
           { status: 409 },
         );
       }
@@ -141,6 +144,12 @@ export async function POST(req: NextRequest) {
       requestBody: {
         values: [["sent"]],
       },
+    });
+
+    await sendEmail({
+      to: "ts.sarnai@stoicngo.org",
+      subject: "Stoic Consultation Booking",
+      html: `<p><strong>Detailed information:</strong> ${email} - ${phone} - ${date} - ${time}</p>`,
     });
 
     return NextResponse.json({ status: "success" });
