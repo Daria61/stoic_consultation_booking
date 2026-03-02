@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
+import { getGoogleCredentials, getSpreadsheetId } from "@/lib/env";
 
-// Load service account credentials from env
-const credentials = JSON.parse(
-  process.env.GOOGLE_SERVICE_ACCOUNT_KEY as string,
-);
+// Load service account credentials from env with validation
+const credentials = getGoogleCredentials();
 
 const auth = new google.auth.GoogleAuth({
   credentials,
@@ -13,7 +12,7 @@ const auth = new google.auth.GoogleAuth({
 
 const sheets = google.sheets({ version: "v4", auth });
 
-const SPREADSHEET_ID = process.env.SPREADSHEET_ID as string;
+const SPREADSHEET_ID = getSpreadsheetId();
 const SHEET_NAME = "Options";
 
 export async function GET(req: NextRequest) {

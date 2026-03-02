@@ -1,12 +1,15 @@
 import nodemailer from "nodemailer";
+import { getSMTPConfig } from "@/lib/env";
+
+const config = getSMTPConfig();
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: false, 
+  host: config.host,
+  port: config.port,
+  secure: false,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: config.user,
+    pass: config.pass,
   },
 });
 
@@ -22,7 +25,7 @@ export const sendEmail = async ({
   html?: string;
 }) => {
   await transporter.sendMail({
-    from: process.env.SMTP_USER,
+    from: config.user,
     to,
     subject,
     text,

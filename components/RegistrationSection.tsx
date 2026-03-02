@@ -27,7 +27,7 @@ export const RegistrationSection = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [fetchTimeLoading, setFetchTimeLoading] = useState(false);
-  const [selectTimeOptions, setSelectTimeOptions] = useState([]);
+  const [selectTimeOptions, setSelectTimeOptions] = useState<string[]>([]);
 
   const {
     register,
@@ -77,18 +77,33 @@ export const RegistrationSection = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      setDate(`${data.date}  ${data.time} ${data.email}`);
+
+      if (!res.ok) {
+        const result = await res.json();
+        if (res.status === 409) {
+          toast.error("Уучлаарай, энэ цаг аль хэдийн захиалагдсан байна");
+        } else if (res.status === 400) {
+          toast.error("Талбаруудыг бүрэн бөглөнө үү");
+        } else {
+          toast.error(result.message || "Алдаа гарлаа");
+        }
+        return;
+      }
 
       const result = await res.json();
 
-      result.status === "success"
-        ? toast.success("Амжилттай бүртгэгдлээ 🎉")
-        : toast.error(result.message);
-    } catch {
-      toast.error("Алдаа гарлаа");
+      if (result.status === "success") {
+        setDate(`${data.date}  ${data.time} ${data.email}`);
+        toast.success("Амжилттай бүртгэгдлээ 🎉");
+        handleNextStep();
+      } else {
+        toast.error(result.message || "Алдаа гарлаа");
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error("Сүлжээний алдаа гарлаа. Дахин оролдоно уу");
     } finally {
       setLoading(false);
-      handleNextStep();
     }
   };
 
@@ -114,14 +129,19 @@ export const RegistrationSection = ({
           <Calendar
             className="p-0 w-full"
             mode="single"
-            selected={new Date(selectedDate)}
+            selected={selectedDate ? new Date(selectedDate) : undefined}
             onSelect={handleDateChange}
             modifiers={{
               highlighted: (date) =>
                 !isDayDisabled(date, selectDateOptions) &&
-                date.toDateString() !== new Date(selectedDate)?.toDateString(),
+                (!selectedDate ||
+                  date.toDateString() !==
+                    new Date(selectedDate).toDateString()),
               selected: (date) =>
-                date.toDateString() === new Date(selectedDate)?.toDateString(),
+                selectedDate
+                  ? date.toDateString() ===
+                    new Date(selectedDate).toDateString()
+                  : false,
             }}
             modifiersClassNames={{
               selected: "[&]:text-white [&]:bg-primary hover:bg-primary",
