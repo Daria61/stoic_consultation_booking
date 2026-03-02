@@ -26,6 +26,10 @@ export async function GET(req: NextRequest) {
 
     const availableDates = new Set<string>();
 
+    // Get today's date at midnight for comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     for (const row of rows) {
       const [
         id,
@@ -48,7 +52,13 @@ export async function GET(req: NextRequest) {
       if (!isAvailable || !isNotBooked) continue;
 
       if (date) {
-        availableDates.add(date);
+        // Condition 3: date must be today or in the future
+        const slotDate = new Date(date);
+        slotDate.setHours(0, 0, 0, 0);
+
+        if (slotDate >= today) {
+          availableDates.add(date);
+        }
       }
     }
 
